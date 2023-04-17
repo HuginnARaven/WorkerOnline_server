@@ -1,3 +1,7 @@
 from django.contrib import admin
 
-# Register your models here.
+from workers.models import Worker, WorkerLogs, WorkersTasks
+
+admin.site.register(Worker)
+admin.site.register(WorkerLogs)
+admin.site.register(WorkersTasks)

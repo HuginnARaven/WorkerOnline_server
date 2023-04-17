@@ -1,3 +1,8 @@
 from django.contrib import admin
 
-# Register your models here.
+from companies.models import Company, Qualification, Task
+
+admin.site.register(Company)
+admin.site.register(Qualification)
+admin.site.register(Task)
+# admin.site.register(Supervisor)

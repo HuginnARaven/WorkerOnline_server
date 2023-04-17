@@ -164,7 +164,7 @@ JAZZMIN_SETTINGS = {
     "site_icon": None,
 
     # Welcome text on the login screen
-    "welcome_sign": "Welcome to the admin panel",
+    "welcome_sign": "Welcome to the admin panel of WorkerOnline project",
 
     # Copyright on the footer
     "copyright": "WorkerOnline",

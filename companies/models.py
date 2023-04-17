@@ -31,7 +31,7 @@ class Task(models.Model):
     def __str__(self):
         return self.title
 
-
+# TODO: make IoT model logic
 # class Supervisor(models.Model):
 #     name = models.CharField(max_length=100, null=False)
 #     is_active = models.BooleanField(default=False, null=True)

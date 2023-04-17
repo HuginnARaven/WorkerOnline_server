@@ -18,12 +18,12 @@ class Worker(UserAccount):
         return f"{self.first_name} {self.last_name}({self.username})"
 
 
-class WorkerLogs(UserAccount):
+class WorkerLogs(models.Model):
     date = models.DateField(null=False)
     time = models.TimeField(null=False)
     type = models.IntegerField(default=0, null=False)
 
-    logged_worker = models.ForeignKey(Worker, on_delete=models.CASCADE, null=False)
+    worker = models.ForeignKey(Worker, on_delete=models.CASCADE, null=False)
 
     def __str__(self):
         return f"{self.date}({self.time})"

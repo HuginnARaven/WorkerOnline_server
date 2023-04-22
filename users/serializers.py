@@ -1,13 +1,46 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
+from companies.models import Company
 from users.models import UserAccount
+from workers.models import Worker
 
 
 class UserAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
         fields = '__all__'
+
+
+class CompanyProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = [
+            'username',
+            'email',
+            'name',
+            'description',
+        ]
+
+
+class WorkerProfileSerializer(serializers.ModelSerializer):
+    worker_qualification = serializers.CharField(read_only=True, source="qualification.name")
+    worker_salary = serializers.IntegerField(read_only=True, source="salary")
+    worker_day_start = serializers.TimeField(read_only=True, source="day_start")
+    worker_day_end = serializers.TimeField(read_only=True, source="day_end")
+
+    class Meta:
+        model = Worker
+        fields = [
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'worker_qualification',
+            'worker_day_start',
+            'worker_day_end',
+            'worker_salary',
+        ]
 
 
 class ChangePasswordSerializer(serializers.ModelSerializer):

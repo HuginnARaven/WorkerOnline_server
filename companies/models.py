@@ -24,7 +24,7 @@ class Qualification(models.Model):
 class Task(models.Model):
     title = models.CharField(max_length=100, null=False)
     description = models.CharField(max_length=255, null=True)
-    hours = models.IntegerField(null=False)
+    estimate_hours = models.IntegerField(null=False)
 
     difficulty = models.ForeignKey(Qualification, on_delete=models.CASCADE, null=False)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, null=False)

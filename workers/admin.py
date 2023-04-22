@@ -33,6 +33,12 @@ class WorkerAdmin(admin.ModelAdmin):
 
 
 class WorkersTasksAdminForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["time_end"].is_required = False
+        self.fields['difficulty_for_worker'].disabled = True
+
     def clean(self):
         cleaned_data = super().clean()
 

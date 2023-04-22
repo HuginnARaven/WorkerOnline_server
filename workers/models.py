@@ -10,6 +10,8 @@ class Worker(UserAccount):
     working_hours = models.IntegerField(default=0, null=False)
     productivity = models.FloatField(default=1, null=True, blank=True)
     salary = models.IntegerField(default=0, null=False)
+    day_start = models.TimeField(null=False)
+    day_end = models.TimeField(null=False)
 
     employer = models.ForeignKey(Company, on_delete=models.CASCADE, null=False)
     qualification = models.ForeignKey(Qualification, on_delete=models.CASCADE, null=False)
@@ -30,8 +32,11 @@ class WorkerLogs(models.Model):
 
 
 class WorkersTasks(models.Model):
-    is_done = models.BooleanField(default=False, null=True)
-    difficulty_for_worker = models.FloatField(default=1, null=True, blank=False)
+    is_done = models.BooleanField(default=False, null=True, blank=True)
+    difficulty_for_worker = models.FloatField(default=1, null=True, blank=True)
+    time_start = models.DateTimeField(auto_now=True, null=False)
+    time_end = models.DateTimeField(null=True, blank=True)
+
     task_appointed = models.ForeignKey(Task, on_delete=models.CASCADE, null=False)
     worker_appointed = models.ForeignKey(Worker, on_delete=models.CASCADE, null=False)
 

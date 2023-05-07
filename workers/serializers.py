@@ -33,7 +33,6 @@ class TaskDoneSerializer(serializers.ModelSerializer):
 
         instance.is_done = True
         instance.time_end = timezone.now()
-
         instance.save()
 
         return instance

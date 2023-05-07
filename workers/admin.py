@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django import forms
+from django.contrib.auth.hashers import make_password
 
 from workers.models import Worker, WorkerLogs, WorkersTasks
 
@@ -15,6 +16,9 @@ class WorkerAdminForm(forms.ModelForm):
 
         if cleaned_data.get("qualification").company != cleaned_data.get("employer"):
             raise forms.ValidationError('Matching error, you are probably trying to set one company and the qualifications of another!')
+
+        # raw_password = cleaned_data.get('password')
+        # cleaned_data['password'] = make_password(raw_password)
 
         return cleaned_data
 

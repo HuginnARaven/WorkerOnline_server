@@ -11,12 +11,12 @@ class CompanyAdminForm(forms.ModelForm):
         self.fields['role'].disabled = True
         self.fields['role'].initial = 'C'
 
-    def clean(self):
-        cleaned_data = super().clean()
-        raw_password = cleaned_data.get('password')
-        cleaned_data['password'] = make_password(raw_password)
-
-        return cleaned_data
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     raw_password = cleaned_data.get('password')
+    #     cleaned_data['password'] = make_password(raw_password)
+    #
+    #     return cleaned_data
 
     class Meta:
         model = Company

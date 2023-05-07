@@ -4,7 +4,6 @@ import pytz
 from users.models import UserAccount
 
 
-# TODO: create timezone field and get_timezone method
 class Company(UserAccount):
     TIMEZONE_CHOICES = zip(pytz.all_timezones, pytz.all_timezones)
 

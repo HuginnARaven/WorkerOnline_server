@@ -1,9 +1,15 @@
+import datetime
+import pytz
 from django.db import models
+from django.utils import timezone
 
 from users.models import UserAccount
 from companies.models import Company, Task, Qualification
 
 
+# TODO: працівники можуть переглядати свої дані через мобільний додаток
+# TODO: можливість співробітниками компанії переглядати свої завдання та змінювати їх статус через мобільний додаток
+# TODO: можливість співробітниками компанії отримувати фідбек від роботодавця щодо своїх завдань через мобільний додаток
 class Worker(UserAccount):
     first_name = models.CharField(max_length=100, null=False)
     last_name = models.CharField(max_length=100, null=False)
@@ -54,6 +60,34 @@ class WorkersTasks(models.Model):
             difficulty = self.task_appointed.difficulty.modifier
             self.difficulty_for_worker = difficulty / qualification
         super().save(*args, **kwargs)
+
+    def get_task_performance(self) -> float:
+        """
+        Function counts performance of worker in completed task
+        by calculating time spent on task without overtimes
+        and dividing estimate_hours by gotten value
+        """
+        if self.is_done:
+            time_start = timezone.localtime(self.time_start, pytz.timezone(self.worker_appointed.employer.timezone))
+            time_end = timezone.localtime(self.time_end, pytz.timezone(self.worker_appointed.employer.timezone))
+            worker_day_start = datetime.datetime.combine(datetime.date.today(), self.worker_appointed.day_start)
+            worker_day_end = datetime.datetime.combine(datetime.date.today(), self.worker_appointed.day_end)
+
+            task_timediff = time_end - time_start
+            days_on_task = time_end.day - time_start.day
+            if time_end.day != time_start.day:
+                worker_timediff = datetime.timedelta(days=1) - (worker_day_end - worker_day_start)
+                task_timediff = task_timediff - (worker_timediff * days_on_task)
+                if time_end.time() > worker_day_end.time():
+                    overtime = datetime.datetime.combine(datetime.date.today(), time_end.time()) - worker_day_end
+                    task_timediff = task_timediff - overtime
+            elif time_end.time() > worker_day_end.time():
+                overtime = datetime.datetime.combine(datetime.date.today(),  time_end.time()) - worker_day_end
+                task_timediff = task_timediff - overtime
+
+            return self.task_appointed.estimate_hours / (task_timediff.total_seconds() / 3600)
+
+        return self.worker_appointed.productivity
 
     def __str__(self):
         return f"{self.task_appointed.title} for {self.worker_appointed.username}"

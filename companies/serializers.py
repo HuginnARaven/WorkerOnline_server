@@ -1,6 +1,10 @@
+import datetime
+
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
+from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.fields import Field
 
 from companies.models import Company, Qualification, Task
 from workers.models import Worker, WorkersTasks, WorkerLogs
@@ -68,7 +72,7 @@ class TaskSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        return Qualification.objects.create(
+        return Task.objects.create(
             title=validated_data['title'],
             description=validated_data['description'],
             estimate_hours=validated_data['estimate_hours'],
@@ -88,11 +92,42 @@ class TaskSerializer(serializers.ModelSerializer):
         return instance
 
 
+# class TimeWithTimezoneField(Field):
+#
+#     default_error_messages = {
+#         'invalid': 'Time has wrong format, expecting %H:%M:%S%z.',
+#     }
+#
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#
+#     def to_internal_value(self, value):
+#         try:
+#             parsed = datetime.datetime.combine(date=datetime.date.today(),
+#                                                time=datetime.datetime.strptime(value, "%H:%M:%S").time(),
+#                                                tzinfo=self.context['request'].user.company.get_timezone())
+#         except (ValueError, TypeError) as e:
+#             pass
+#         else:
+#             return parsed
+#         self.fail('invalid')
+#
+#     def to_representation(self, value):
+#         if not value:
+#             return None
+#
+#         if isinstance(value, str):
+#             return value
+#         return timezone.make_naive(value, self.context['request'].user.company.get_timezone()).strftime("%H:%M:%S%z")
+
+
 class WorkerSerializer(serializers.ModelSerializer):
     password = serializers.CharField(style={'input_type': 'password'}, write_only=True, validators=[validate_password])
     password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
     worker_qualification_info = QualificationSerializer(read_only=True, source="qualification")
     id = serializers.IntegerField(read_only=True)
+    # day_start = TimeWithTimezoneField()
+    # day_end = TimeWithTimezoneField()
 
     class Meta:
         model = Worker
@@ -113,7 +148,6 @@ class WorkerSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        from pytz import timezone
         password = validated_data['password']
         password2 = validated_data['password2']
         if password != password2:
@@ -121,12 +155,6 @@ class WorkerSerializer(serializers.ModelSerializer):
         if self.context['request'].user.company != validated_data['qualification'].company:
             raise serializers.ValidationError({'detail': ['You cannot use another company`s qualifications!']})
 
-        # day_start_company_timezone = datetime.datetime.combine(date=datetime.date.today(),
-        #                                                        time=validated_data['day_start'],
-        #                                                        tzinfo=self.context['request'].user.company.get_timezone())
-        # day_end_company_timezone = datetime.datetime.combine(date=datetime.date.today(),
-        #                                                      time=validated_data['day_end'],
-        #                                                      tzinfo=self.context['request'].user.company.get_timezone())
         return Worker.objects.create(
             username=validated_data['username'],
             email=validated_data['email'],
@@ -139,8 +167,6 @@ class WorkerSerializer(serializers.ModelSerializer):
             working_hours=validated_data['working_hours'],
             day_start=validated_data['day_start'],
             day_end=validated_data['day_end'],
-            # day_start=day_start_company_timezone.astimezone(timezone(TIME_ZONE)).time(),
-            # day_end=day_end_company_timezone.astimezone(timezone(TIME_ZONE)).time(),
             salary=validated_data['salary'],
         )
 

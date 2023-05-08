@@ -2,7 +2,7 @@ from django.contrib import admin
 from django import forms
 from django.contrib.auth.hashers import make_password
 
-from workers.models import Worker, WorkerLogs, WorkersTasks
+from workers.models import Worker, WorkerLogs, TaskAppointment
 
 
 class WorkerAdminForm(forms.ModelForm):
@@ -52,7 +52,7 @@ class WorkersTasksAdminForm(forms.ModelForm):
         return cleaned_data
 
     class Meta:
-        model = WorkersTasks
+        model = TaskAppointment
         fields = '__all__'
 
 
@@ -62,4 +62,4 @@ class WorkersTasksAdmin(admin.ModelAdmin):
 
 admin.site.register(Worker, WorkerAdmin)
 admin.site.register(WorkerLogs)
-admin.site.register(WorkersTasks, WorkersTasksAdmin)
+admin.site.register(TaskAppointment, WorkersTasksAdmin)

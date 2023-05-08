@@ -40,15 +40,11 @@ class WorkerLogs(models.Model):
     worker = models.ForeignKey(Worker, on_delete=models.CASCADE, null=False)
     task = models.ForeignKey(Task, on_delete=models.CASCADE, null=False)
 
-    def get_time_with_timezone(self):
-        time_with_timezone = datetime.datetime.combine(self.date, self.time)
-        return self
-
     def __str__(self):
         return f"{self.date}({self.time})"
 
 
-class WorkersTasks(models.Model):
+class TaskAppointment(models.Model):
     is_done = models.BooleanField(default=False, null=True, blank=True)
     difficulty_for_worker = models.FloatField(default=1, null=True, blank=True)
     time_start = models.DateTimeField(auto_now_add=True, null=False)
@@ -94,3 +90,10 @@ class WorkersTasks(models.Model):
 
     def __str__(self):
         return f"{self.task_appointed.title} for {self.worker_appointed.username}"
+
+
+class WorkerTaskComment(models.Model):
+    time_created = models.DateTimeField(auto_now_add=True)
+    text = models.TextField(null=False)
+
+    task_appointment = models.ForeignKey(TaskAppointment, on_delete=models.CASCADE, null=False, related_name='comments')

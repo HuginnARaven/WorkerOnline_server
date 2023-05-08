@@ -8,7 +8,7 @@ from rest_framework import serializers
 from rest_framework.fields import Field
 
 from companies.models import Company, Qualification, Task
-from workers.models import Worker, WorkersTasks, WorkerLogs
+from workers.models import Worker, TaskAppointment, WorkerLogs, WorkerTaskComment
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -82,7 +82,7 @@ class TaskSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-        if WorkersTasks.objects.filter(task_appointed=instance.id):
+        if TaskAppointment.objects.filter(task_appointed=instance.id):
             raise serializers.ValidationError({'detail': ['You can not edit appointed task!']})
 
         instance.title = validated_data.get('title')
@@ -204,7 +204,7 @@ class TaskAppointmentSerializer(serializers.ModelSerializer):
     time_end = serializers.DateTimeField(read_only=True)
 
     class Meta:
-        model = WorkersTasks
+        model = TaskAppointment
         fields = [
             'id',
             'is_done',
@@ -240,17 +240,17 @@ class TaskAppointmentSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        if WorkersTasks.objects.filter(worker_appointed=validated_data['worker_appointed'], is_done=False):
+        if TaskAppointment.objects.filter(worker_appointed=validated_data['worker_appointed'], is_done=False):
             raise serializers.ValidationError({'detail': [
                 'The appointed worker already has active task!'
             ]})
 
-        if WorkersTasks.objects.filter(task_appointed=validated_data['task_appointed']):
+        if TaskAppointment.objects.filter(task_appointed=validated_data['task_appointed']):
             raise serializers.ValidationError({'detail': [
                 'This task has been appointed already!'
             ]})
 
-        return WorkersTasks.objects.create(
+        return TaskAppointment.objects.create(
             task_appointed=validated_data['task_appointed'],
             worker_appointed=validated_data['worker_appointed'],
         )
@@ -290,3 +290,33 @@ class WorkerLogSerializer(serializers.ModelSerializer):
         localized_datetime = timezone.localtime(obj.datetime, obj.worker.employer.get_timezone())
         return localized_datetime.strftime('%Y-%m-%d %H:%M:%S')
 
+
+class WorkerTaskCommentSerializer(serializers.ModelSerializer):
+    time_created = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = WorkerTaskComment
+        fields = [
+            'id',
+            'text',
+            'time_created',
+            'task_appointment',
+        ]
+
+    def validate(self, data):
+        if data.get('task_appointment') and not TaskAppointment.objects.filter(id=data.get('task_appointment').id, task_appointed__company=self.context['request'].user.company):
+            raise serializers.ValidationError({'task_appointment': [
+                'The task_appointment does not exist or does not belong to your company!'
+            ]})
+
+        return data
+
+    def update(self, instance, validated_data):
+        if validated_data.get('task_appointment') and validated_data.get('task_appointment') != instance.task_appointment:
+            raise serializers.ValidationError({'task_appointment': ['You can not change task for comment!']})
+
+        instance.text = validated_data.get('text') or instance.text
+
+        instance.save()
+
+        return instance

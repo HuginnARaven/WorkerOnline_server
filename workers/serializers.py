@@ -3,22 +3,24 @@ from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers
 
-from companies.serializers import TaskSerializer
-from workers.models import WorkersTasks, WorkerLogs
+from companies.serializers import TaskSerializer, WorkerTaskCommentSerializer
+from workers.models import TaskAppointment, WorkerLogs
 
 
 class TaskDoneSerializer(serializers.ModelSerializer):
     task_info = TaskSerializer(read_only=True, source="task_appointed")
     difficulty_for_worker = serializers.FloatField(read_only=True)
     is_done = serializers.BooleanField(read_only=True)
+    comments = WorkerTaskCommentSerializer(many=True, read_only=True)
     time_start = serializers.DateTimeField(read_only=True)
     time_end = serializers.DateTimeField(read_only=True)
 
     class Meta:
-        model = WorkersTasks
+        model = TaskAppointment
         fields = [
             'id',
             'is_done',
+            'comments',
             'time_start',
             'time_end',
             'difficulty_for_worker',

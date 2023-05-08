@@ -5,12 +5,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from permission.permission import IsWorker
-from workers.models import WorkersTasks, WorkerLogs
+from workers.models import TaskAppointment, WorkerLogs
 from workers.serializers import TaskDoneSerializer, WorkersLogSerializer
 
 
 class TaskDoneView(mixins.UpdateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet):
-    queryset = WorkersTasks.objects.all()
+    queryset = TaskAppointment.objects.all()
     serializer_class = TaskDoneSerializer
     permission_classes = [IsAuthenticated, IsWorker, ]
     filter_backends = [DjangoFilterBackend]

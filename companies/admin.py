@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django import forms
 from django.contrib.auth.hashers import make_password
+from django.utils.translation import gettext_lazy as _
 
 from companies.models import Company, Qualification, Task
 
@@ -36,7 +37,7 @@ class TaskAdminForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         if not Qualification.objects.filter(company=cleaned_data.get('company'), id=cleaned_data.get('difficulty').id).exists():
-            raise forms.ValidationError('Matching error, you are probably trying to set one company and the qualifications of another!')
+            raise forms.ValidationError(_('Matching error, you are probably trying to set one company and the qualifications of another!'))
 
         return cleaned_data
 

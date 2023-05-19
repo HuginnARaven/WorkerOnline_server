@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from companies.models import Company
 from workers.models import Worker
@@ -16,6 +17,10 @@ class Supervisor(models.Model):
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, null=False)
     worker = models.ForeignKey(Worker, on_delete=models.CASCADE, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('supervisor')
+        verbose_name_plural = _('supervisors')
 
     def __str__(self):
         return f"Supervisor #{self.id}({self.company.name})"

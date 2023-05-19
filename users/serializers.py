@@ -1,5 +1,6 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from django.utils.translation import gettext_lazy as _
 
 from companies.models import Company
 from users.models import UserAccount
@@ -54,14 +55,14 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError(["Password fields didn't match."])
+            raise serializers.ValidationError(_("Password fields didn't match"))
 
         return attrs
 
     def validate_old_password(self, value):
         user = self.context['request'].user
         if not user.check_password(value):
-            raise serializers.ValidationError(["Old password is not correct"])
+            raise serializers.ValidationError(_("Old password is not correct"))
         return value
 
     def update(self, instance, validated_data):

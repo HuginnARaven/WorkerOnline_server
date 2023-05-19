@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django import forms
 from django.contrib.auth.hashers import make_password
+from django.utils.translation import gettext_lazy as _
 
-from workers.models import Worker, WorkerLogs, TaskAppointment
+from workers.models import Worker, WorkerLogs, TaskAppointment, WorkerTaskComment
 
 
 class WorkerAdminForm(forms.ModelForm):
@@ -15,7 +16,7 @@ class WorkerAdminForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         if cleaned_data.get("qualification").company != cleaned_data.get("employer"):
-            raise forms.ValidationError('Matching error, you are probably trying to set one company and the qualifications of another!')
+            raise forms.ValidationError(_('Matching error, you are probably trying to set one company and the qualifications of another!'))
 
         # raw_password = cleaned_data.get('password')
         # cleaned_data['password'] = make_password(raw_password)
@@ -47,7 +48,7 @@ class WorkersTasksAdminForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         if cleaned_data.get("task_appointed").company != cleaned_data.get("worker_appointed").employer:
-            raise forms.ValidationError('Matching error, you are probably trying to set task from one company and the worker of another!')
+            raise forms.ValidationError(_('Matching error, you are probably trying to set task from one company and the worker of another!'))
 
         return cleaned_data
 
@@ -63,3 +64,5 @@ class WorkersTasksAdmin(admin.ModelAdmin):
 admin.site.register(Worker, WorkerAdmin)
 admin.site.register(WorkerLogs)
 admin.site.register(TaskAppointment, WorkersTasksAdmin)
+admin.site.register(WorkerTaskComment)
+

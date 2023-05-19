@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 from datetime import timedelta
+from django.utils.translation import gettext_lazy as _
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -61,6 +62,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -137,6 +139,13 @@ ACCOUNT_UNIQUE_EMAIL = True
 
 LANGUAGE_CODE = 'en-us'
 
+LANGUAGES = [
+    ("en", _("English")),
+    ("uk", _("Ukrainian")),
+]
+
+LOCALE_PATHS = [BASE_DIR / 'locale']
+
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
@@ -180,7 +189,7 @@ JAZZMIN_SETTINGS = {
     "site_icon": None,
 
     # Welcome text on the login screen
-    "welcome_sign": "Welcome to the admin panel of WorkerOnline project",
+    "welcome_sign": _("Welcome to the admin panel of WorkerOnline project"),
 
     # Copyright on the footer
     "copyright": "WorkerOnline",
@@ -201,7 +210,7 @@ JAZZMIN_SETTINGS = {
     "topmenu_links": [
 
         # Url that gets reversed (Permissions can be added)
-        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": _("Home"),  "url": "admin:index", "permissions": ["auth.view_user"]},
 
         # external url that opens in a new window (Permissions can be added)
         # {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues", "new_window": True},
@@ -293,7 +302,7 @@ JAZZMIN_SETTINGS = {
     # override change forms on a per modeladmin basis
     "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
     # Add a language dropdown into the admin
-    #"language_chooser": True,
+    "language_chooser": True,
 }
 
 SIMPLE_JWT = {

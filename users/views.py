@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
+from django.utils.translation import gettext_lazy as _
 
 from companies.models import Company
 from users.models import UserAccount
@@ -57,7 +58,7 @@ class ChangePasswordView(generics.UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         result = {
-            "password": "Password has been changed successfully",
+            "password": _("Password has been changed successfully"),
         }
         return Response(result)
 

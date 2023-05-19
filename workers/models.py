@@ -2,12 +2,12 @@ import datetime
 import pytz
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from users.models import UserAccount
 from companies.models import Company, Task, Qualification
 
 
-# TODO: можливість співробітниками компанії отримувати фідбек від роботодавця щодо своїх завдань через мобільний додаток
 class Worker(UserAccount):
     first_name = models.CharField(max_length=100, null=False)
     last_name = models.CharField(max_length=100, null=False)
@@ -39,6 +39,10 @@ class WorkerLogs(models.Model):
 
     worker = models.ForeignKey(Worker, on_delete=models.CASCADE, null=False)
     task = models.ForeignKey(Task, on_delete=models.CASCADE, null=False)
+
+    class Meta:
+        verbose_name = _('worker`s log')
+        verbose_name_plural = _('worker`s logs')
 
     def __str__(self):
         return f"{self.date}({self.time})"
@@ -89,6 +93,10 @@ class TaskAppointment(models.Model):
 
         return self.worker_appointed.productivity
 
+    class Meta:
+        verbose_name = _('task appointment')
+        verbose_name_plural = _('tasks appointments')
+
     def __str__(self):
         return f"{self.task_appointed.title} for {self.worker_appointed.username}"
 
@@ -98,3 +106,10 @@ class WorkerTaskComment(models.Model):
     text = models.TextField(null=False)
 
     task_appointment = models.ForeignKey(TaskAppointment, on_delete=models.CASCADE, null=False, related_name='comments')
+
+    class Meta:
+        verbose_name = _('task comment')
+        verbose_name_plural = _('tasks comments')
+
+    def __str__(self):
+        return f"{self.task_appointment.task_appointed.title} ({self.time_created})"

@@ -3,6 +3,7 @@ import datetime
 import pytz
 from rest_framework import serializers
 from rest_framework.response import Response
+from django.utils.translation import gettext_lazy as _
 
 from iot.models import Supervisor
 from workers.models import Worker, WorkerLogs, TaskAppointment
@@ -42,11 +43,11 @@ class SupervisorCompanySerializer(serializers.ModelSerializer):
             if not Worker.objects.filter(id=data['worker'].id,
                                          employer=self.context['request'].user.company):
                 raise serializers.ValidationError({'detail': [
-                    'The assigned worker does not exist or belong to your company!'
+                    _('The assigned worker does not exist or belong to your company!')
                 ]})
             if Supervisor.objects.filter(worker=data['worker']):
                 raise serializers.ValidationError({'detail': [
-                    'The assigned worker already have Supervisor!'
+                    _('The assigned worker already have Supervisor!')
                 ]})
 
         return data
@@ -85,9 +86,9 @@ class WorkerPresenceLogSerializer(serializers.ModelSerializer):
         supervisor_worker = supervisor.worker
         worker_curr_task = TaskAppointment.objects.filter(is_done=False, worker_appointed=supervisor_worker).first()
         if not supervisor_worker:
-            raise serializers.ValidationError({'detail': 'The IoT does not have assigned worker!'})
+            raise serializers.ValidationError({'detail': _('The IoT does not have assigned worker!')})
         if not worker_curr_task:
-            raise serializers.ValidationError({'detail': 'The assigned worker does not have task now!'})
+            raise serializers.ValidationError({'detail': _('The assigned worker does not have task now!')})
         return WorkerLogs.objects.create(
             type=validated_data.get("type"),
             description=validated_data.get("description"),

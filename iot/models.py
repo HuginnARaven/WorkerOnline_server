@@ -8,7 +8,7 @@ from workers.models import Worker
 class Supervisor(models.Model):
     in_admin_mode = models.BooleanField(default=False, null=False)
     is_active = models.BooleanField(default=False, null=False)
-    last_active = models.DateTimeField(auto_now=True)
+    last_active = models.DateTimeField(null=True, blank=True)
     serial_number = models.CharField(max_length=255,
                                      unique=True,
                                      help_text="Mast be unique, and implemented in iot program code!",

@@ -114,6 +114,7 @@ class SendActivitySerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.is_active = True
+        instance.last_active = timezone.now()
 
         instance.save()
 

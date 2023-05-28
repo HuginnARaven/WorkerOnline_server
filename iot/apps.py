@@ -8,5 +8,9 @@ class IotConfig(AppConfig):
     def ready(self):
         try:
             import iot.signals
+            from . import scheduler
+            scheduler.start()
+
         except ImportError:
+            print("iot app ImportError")
             pass

@@ -47,6 +47,7 @@ class WorkerLogs(models.Model):
         ('TD', 'Task done'),
         ('TC', 'Task status changed'),
         ('OC', 'Out of working place'),
+        ('SL', 'Supervisor connection lost'),
         ('CL', 'Custom log'),
     ]
     date = models.DateField(null=False, auto_now_add=True)

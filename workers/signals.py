@@ -22,6 +22,7 @@ def task_done_log(sender, instance=None, created=True, **kwargs):
                                       type='TC',
                                       description=f'Task status was changed to "{instance.status}" by the worker.')
 
+
 @receiver(post_save, sender=Worker)
 def worker_created(sender, instance=None, created=True, **kwargs):
     if created:

@@ -15,5 +15,14 @@ class OfferAdmin(admin.ModelAdmin):
         return form
 
 
-admin.site.register(Supervisor)
+class SupervisorAdmin(admin.ModelAdmin):
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['last_active'].disabled = True
+
+        return form
+
+
+admin.site.register(Supervisor, SupervisorAdmin)
 admin.site.register(Offer, OfferAdmin)

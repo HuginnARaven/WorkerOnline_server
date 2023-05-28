@@ -12,9 +12,3 @@ def task_appoint_log(sender, instance=None, created=True, **kwargs):
                                   worker=instance.worker_appointed,
                                   type='TA',
                                   description='Task was appointed to the worker.')
-
-    # if not created:
-    #     WorkerLogs.objects.create(task=instance.task_appointed,
-    #                               worker=instance.worker_appointed,
-    #                               type='TD',
-    #                               description='Task was done by the worker.')

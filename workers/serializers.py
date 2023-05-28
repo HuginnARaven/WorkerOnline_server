@@ -115,4 +115,3 @@ class WorkersLogSerializer(serializers.ModelSerializer):
     def get_localized_datetime(self, obj):
         localized_datetime = timezone.localtime(obj.datetime, obj.worker.employer.get_timezone())
         return localized_datetime.strftime('%Y-%m-%d %H:%M:%S')
-

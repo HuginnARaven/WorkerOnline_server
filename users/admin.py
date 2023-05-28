@@ -33,7 +33,6 @@ class UserAccountAdmin(ExportActionMixin, admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-
 class TechSupportRequestAdmin(ExportActionMixin, admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)

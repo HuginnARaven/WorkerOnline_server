@@ -37,6 +37,15 @@ class Worker(UserAccount):
 
         return approx_finsh_date
 
+    def count_remaining_working_hours(self):
+        today = timezone.now()
+        last_monday = today - datetime.timedelta(days=today.weekday())
+        appointments = TaskAppointment.objects.filter(worker_appointed=self, time_start__gte=last_monday)
+        count_remaining_working_hours = self.working_hours
+        for a in appointments:
+            count_remaining_working_hours -= a.task_appointed.estimate_hours
+        return count_remaining_working_hours
+
     def __str__(self):
         return f"{self.first_name} {self.last_name}({self.username})"
 
@@ -50,8 +59,6 @@ class WorkerLogs(models.Model):
         ('SL', 'Supervisor connection lost'),
         ('CL', 'Custom log'),
     ]
-    date = models.DateField(null=False, auto_now_add=True)
-    time = models.TimeField(null=False, auto_now_add=True)
     datetime = models.DateTimeField(null=False, auto_now_add=True)
     type = models.CharField(max_length=2, null=False, choices=LOG_TYPES, default='CL')
     description = models.TextField(null=True, blank=True)
@@ -64,7 +71,7 @@ class WorkerLogs(models.Model):
         verbose_name_plural = _('worker`s logs')
 
     def __str__(self):
-        return f"{self.date}({self.time})"
+        return f"{self.worker.username} {self.type} ({self.datetime})"
 
 
 class WorkerSchedule(models.Model):

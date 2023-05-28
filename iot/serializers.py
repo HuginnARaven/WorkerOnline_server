@@ -1,9 +1,5 @@
-import datetime
-
-import pytz
 from django.utils import timezone
 from rest_framework import serializers
-from rest_framework.response import Response
 from django.utils.translation import gettext_lazy as _
 
 from iot.models import Supervisor, Offer

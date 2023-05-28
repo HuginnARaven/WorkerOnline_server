@@ -1,14 +1,15 @@
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 import django_filters.rest_framework
-from rest_framework import generics, viewsets, status, mixins
+from rest_framework import generics, viewsets, status, mixins, filters
 from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_cookie
-from django.core.cache import cache
+from django.views.decorators.vary import vary_on_cookie, vary_on_headers
+from django.core.cache import cache, caches
 
 from companies.models import Company, Qualification, Task
 from companies.serializers import CompanySerializer, WorkerSerializer, QualificationSerializer, TaskSerializer, \
@@ -16,6 +17,12 @@ from companies.serializers import CompanySerializer, WorkerSerializer, Qualifica
     WorkerReportSerializer, AutoAppointmentSerializer, CompanyTaskCommentSerializer, WorkerScheduleSerializer
 from companies.permission import IsCompany, IsCompanyWorker
 from workers.models import Worker, TaskAppointment, WorkerLogs, WorkerTaskComment, WorkerSchedule
+
+
+class CustomStandartPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 
 
 class CompanySinUpView(mixins.CreateModelMixin, GenericViewSet):
@@ -27,11 +34,8 @@ class WorkerView(viewsets.ModelViewSet):
     queryset = Worker.objects.all()
     serializer_class = WorkerSerializer
     permission_classes = [IsAuthenticated, IsCompanyWorker, ]
-
-    @method_decorator(cache_page(60))
-    def list(self, *args, **kwargs):
-        print("chached")
-        return super().list(*args, **kwargs)
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username', 'email', 'first_name', 'last_name']
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -58,6 +62,7 @@ class TaskView(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, IsCompany, ]
+    pagination_class = CustomStandartPagination
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -80,6 +85,7 @@ class WorkerLogView(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericVie
     permission_classes = [IsAuthenticated, IsCompany, ]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['worker', 'datetime__date', 'type']
+    pagination_class = CustomStandartPagination
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -110,6 +116,11 @@ class WorkerReportView(mixins.RetrieveModelMixin, mixins.ListModelMixin, Generic
     queryset = Worker.objects.all()
     serializer_class = WorkerReportSerializer
     permission_classes = [IsAuthenticated, IsCompany, ]
+
+    @method_decorator(cache_page(60 * 2))
+    @method_decorator(vary_on_headers("Authorization", ))
+    def list(self, *args, **kwargs):
+        return super().list(*args, **kwargs)
 
     def get_queryset(self):
         qs = super().get_queryset()

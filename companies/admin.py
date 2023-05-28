@@ -2,7 +2,7 @@ from django.contrib import admin
 from django import forms
 from django.contrib.auth.hashers import make_password
 from django.utils.translation import gettext_lazy as _
-from import_export.admin import ExportActionMixin, ExportActionModelAdmin
+from import_export.admin import ExportActionMixin
 
 from companies.models import Company, Qualification, Task
 
@@ -20,8 +20,7 @@ class CompanyAdmin(ExportActionMixin, admin.ModelAdmin):
         return form
 
     def save_model(self, request, obj, form, change):
-        # Apply make_password only when creating a new instance
-        if not change:  # Checking if instance is being created
+        if not change:
             obj.password = make_password(obj.password)
 
         super().save_model(request, obj, form, change)

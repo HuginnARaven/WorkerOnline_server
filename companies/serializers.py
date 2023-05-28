@@ -186,8 +186,6 @@ class WorkerSerializer(serializers.ModelSerializer):
         password2 = validated_data.get('password2')
         if password != password2:
             raise serializers.ValidationError({'detail': ['Password do not match!']})
-        # if self.context['request'].user.company != validated_data.get('qualification').company:
-        #     raise serializers.ValidationError({'detail': ['You cannot use another company`s qualifications!']})
 
         instance.username = validated_data.get('username') or instance.username
         instance.email = validated_data.get('email') or instance.email
@@ -286,8 +284,6 @@ class TaskAppointmentSerializer(serializers.ModelSerializer):
 
 
 class WorkerLogSerializer(serializers.ModelSerializer):
-    # task_info = TaskSerializer(read_only=True, source="task")
-    # worker_info = WorkerSerializer(read_only=True, source="worker")
     datetime = serializers.DateTimeField(read_only=True)
     localized_datetime = serializers.SerializerMethodField()
 
@@ -302,9 +298,7 @@ class WorkerLogSerializer(serializers.ModelSerializer):
             'type',
             'description',
             'worker',
-            # 'worker_info',
             'task',
-            # 'task_info',
         ]
 
     def get_localized_datetime(self, obj):
@@ -336,7 +330,11 @@ class CompanyTaskCommentSerializer(serializers.ModelSerializer):
         return data
 
     def get_localized_time_created(self, obj):
-        localized_datetime = timezone.localtime(obj.time_created, obj.user.company.get_timezone())
+        print(obj.user.role)
+        if obj.user.role == 'C':
+            localized_datetime = timezone.localtime(obj.time_created, obj.user.company.get_timezone())
+        else:
+            localized_datetime = timezone.localtime(obj.time_created, obj.user.worker.employer.get_timezone())
         return localized_datetime.strftime('%Y-%m-%d %H:%M:%S')
 
     def update(self, instance, validated_data):
@@ -386,7 +384,7 @@ class TaskRecommendationSerializer(serializers.ModelSerializer):
         if not workers:
             return _('There are no workers to recommend for this task!')
         result = []
-
+        workers = sorted(workers, key=lambda a: a.count_remaining_working_hours(), reverse=True)
         for worker in workers:
             if not TaskAppointment.objects.filter(is_done=False, worker_appointed=worker):
                 result.append({
@@ -401,12 +399,6 @@ class TaskRecommendationSerializer(serializers.ModelSerializer):
         if not result:
             return _('There are no workers to recommend for this task for now! (probably some workers that can be recommended are busy now)')
         return result
-        # workers_serialize = core_serializers.serialize('python', workers)
-        # workers_serialize_result = []
-        # for worker in workers_serialize:
-        #     if not TaskAppointment.objects.filter(is_done=False, worker_appointed_id=int(worker.get("pk"))):
-        #         workers_serialize_result.append(worker.get("fields"))
-        # return workers_serialize_result
 
 
 class WorkerReportSerializer(serializers.ModelSerializer):
@@ -426,18 +418,37 @@ class WorkerReportSerializer(serializers.ModelSerializer):
         ]
 
     def get_worker_general_statistics(self, obj):
+        if not self.context['request'].query_params.get("days"):
+            worker_logs = WorkerLogs.objects.filter(worker=obj)
+            times_deadline_not_met = TaskAppointment.objects.filter(worker_appointed=obj,
+                                                                    is_done=True,
+                                                                    deadline__gt=F('time_end')).count()
+        else:
+            days = timezone.now() - datetime.timedelta(days=int(self.context['request'].query_params.get("days")))
+            worker_logs = WorkerLogs.objects.filter(worker=obj, datetime__gte=days)
+            times_deadline_not_met = TaskAppointment.objects.filter(worker_appointed=obj,
+                                                                    is_done=True,
+                                                                    deadline__gt=F('time_end'),
+                                                                    time_end__gte=days).count()
 
-        worker_logs = WorkerLogs.objects.filter(worker=obj)
         result = {
             "tasks_done": worker_logs.filter(type__exact="TD").count(),
             "times_out_of_working_place": worker_logs.filter(type__exact="OC").count(),
-            "times_deadline_not_met": TaskAppointment.objects.filter(worker_appointed=obj, is_done=True, deadline__gt=F('time_end')).count()
+            "times_deadline_not_met": times_deadline_not_met
         }
 
         return result
 
     def get_worker_tasks_statistics(self, obj):
-        worker_tasks_appointments = TaskAppointment.objects.filter(worker_appointed=obj, is_done=True)
+        days = self.context['request'].query_params.get("days")
+        if days:
+            days = timezone.now() - datetime.timedelta(days=int(days))
+            worker_tasks_appointments = TaskAppointment.objects.filter(worker_appointed=obj,
+                                                                       is_done=True,
+                                                                       time_end__gte=days)
+        else:
+            worker_tasks_appointments = TaskAppointment.objects.filter(worker_appointed=obj,
+                                                                       is_done=True)
 
         result = []
         for task_appointment in worker_tasks_appointments:

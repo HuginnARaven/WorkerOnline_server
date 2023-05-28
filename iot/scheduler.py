@@ -25,6 +25,6 @@ def update_inactive_iot(last_active_minutes=20):
 
 def start():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(update_inactive_iot, "interval", minutes=1, id="iot_updater_1", replace_existing=True)
+    scheduler.add_job(update_inactive_iot, "interval", minutes=15, id="iot_updater_1", replace_existing=True)
     scheduler.start()
     print("Scheduler started")

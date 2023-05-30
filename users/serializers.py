@@ -22,6 +22,7 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
             'email',
             'name',
             'description',
+            'timezone',
         ]
 
 

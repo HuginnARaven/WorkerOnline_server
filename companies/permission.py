@@ -21,3 +21,15 @@ class IsCompanyWorker(permissions.BasePermission):
         if obj.employer.id == request.user.id:
             return True
         return False
+
+
+class IsCompanyOwner(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user.role == 'C':
+            return True
+        return False
+
+    def has_object_permission(self, request, view, obj):
+        if obj.worker.employer.id == request.user.id:
+            return True
+        return False

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
+    'django_rest_passwordreset',
     'django_filters',
     'users.apps.UsersConfig',
     'workers.apps.WorkersConfig',
@@ -167,6 +168,8 @@ REST_FRAMEWORK = {
 AUTH_USER_MODEL = 'users.UserAccount'
 
 ACCOUNT_UNIQUE_EMAIL = True
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

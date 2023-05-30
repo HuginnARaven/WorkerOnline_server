@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import generics, viewsets, status, mixins
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -69,11 +68,12 @@ class TechSupportRequestView(viewsets.ModelViewSet, GenericViewSet):
     serializer_class = TechSupportRequestSerializer
     permission_classes = [IsAuthenticated, ]
 
-    @method_decorator(cache_page(60 * 5))
-    @method_decorator(vary_on_headers("Authorization", ))
-    def list(self, *args, **kwargs):
-        return super().list(*args, **kwargs)
+    # @method_decorator(cache_page(60 * 5))
+    # @method_decorator(vary_on_headers("Authorization", ))
+    # def list(self, *args, **kwargs):
+    #     return super().list(*args, **kwargs)
 
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(user=self.request.user)
+

@@ -203,6 +203,58 @@ class WorkerSerializer(serializers.ModelSerializer):
         return instance
 
 
+class CompanyTaskCommentSerializer(serializers.ModelSerializer):
+    time_created = serializers.DateTimeField(read_only=True)
+    username = serializers.CharField(read_only=True, source='user.username')
+    localized_time_created = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = WorkerTaskComment
+        fields = [
+            'id',
+            'username',
+            'text',
+            'time_created',
+            'localized_time_created',
+            'task_appointment',
+        ]
+
+    def validate(self, data):
+        if data.get('task_appointment') and not TaskAppointment.objects.filter(id=data.get('task_appointment').id, task_appointed__company=self.context['request'].user.company):
+            raise serializers.ValidationError({'task_appointment': [
+                _('The task_appointment does not exist or does not belong to your company!')
+            ]})
+
+        return data
+
+    def get_localized_time_created(self, obj):
+        print(obj.user.role)
+        if obj.user.role == 'C':
+            localized_datetime = timezone.localtime(obj.time_created, obj.user.company.get_timezone())
+        else:
+            localized_datetime = timezone.localtime(obj.time_created, obj.user.worker.employer.get_timezone())
+        return localized_datetime.strftime('%Y-%m-%d %H:%M:%S')
+
+    def update(self, instance, validated_data):
+        if validated_data.get('task_appointment') and validated_data.get('task_appointment') != instance.task_appointment:
+            raise serializers.ValidationError({'task_appointment': [_('You can not change task for comment!')]})
+
+        if self.context['request'].user != instance.user:
+            raise serializers.ValidationError({'user': [_('You can not change another people comments!')]})
+
+        instance.text = validated_data.get('text') or instance.text
+
+        instance.save()
+
+        return instance
+
+    def create(self, validated_data):
+        return WorkerTaskComment.objects.create(
+            text=validated_data['text'],
+            task_appointment=validated_data['task_appointment'],
+            user=self.context['request'].user
+        )
+
+
 class TaskAppointmentSerializer(serializers.ModelSerializer):
     task_info = TaskSerializer(read_only=True, source="task_appointed")
     worker_info = WorkerSerializer(read_only=True, source="worker_appointed")
@@ -211,6 +263,7 @@ class TaskAppointmentSerializer(serializers.ModelSerializer):
     time_start = serializers.DateTimeField(read_only=True)
     time_end = serializers.DateTimeField(read_only=True)
     status = serializers.CharField(read_only=True)
+    comments = CompanyTaskCommentSerializer(many=True, read_only=True)
 
     class Meta:
         model = TaskAppointment
@@ -218,6 +271,7 @@ class TaskAppointmentSerializer(serializers.ModelSerializer):
             'id',
             'is_done',
             'status',
+            'comments',
             'time_start',
             'time_end',
             'difficulty_for_worker',
@@ -291,8 +345,6 @@ class WorkerLogSerializer(serializers.ModelSerializer):
         model = WorkerLogs
         fields = [
             'id',
-            'date',
-            'time',
             'datetime',
             'localized_datetime',
             'type',
@@ -304,58 +356,6 @@ class WorkerLogSerializer(serializers.ModelSerializer):
     def get_localized_datetime(self, obj):
         localized_datetime = timezone.localtime(obj.datetime, obj.worker.employer.get_timezone())
         return localized_datetime.strftime('%Y-%m-%d %H:%M:%S')
-
-
-class CompanyTaskCommentSerializer(serializers.ModelSerializer):
-    time_created = serializers.DateTimeField(read_only=True)
-    username = serializers.CharField(read_only=True, source='user.username')
-    localized_time_created = serializers.SerializerMethodField(read_only=True)
-    class Meta:
-        model = WorkerTaskComment
-        fields = [
-            'id',
-            'username',
-            'text',
-            'time_created',
-            'localized_time_created',
-            'task_appointment',
-        ]
-
-    def validate(self, data):
-        if data.get('task_appointment') and not TaskAppointment.objects.filter(id=data.get('task_appointment').id, task_appointed__company=self.context['request'].user.company):
-            raise serializers.ValidationError({'task_appointment': [
-                _('The task_appointment does not exist or does not belong to your company!')
-            ]})
-
-        return data
-
-    def get_localized_time_created(self, obj):
-        print(obj.user.role)
-        if obj.user.role == 'C':
-            localized_datetime = timezone.localtime(obj.time_created, obj.user.company.get_timezone())
-        else:
-            localized_datetime = timezone.localtime(obj.time_created, obj.user.worker.employer.get_timezone())
-        return localized_datetime.strftime('%Y-%m-%d %H:%M:%S')
-
-    def update(self, instance, validated_data):
-        if validated_data.get('task_appointment') and validated_data.get('task_appointment') != instance.task_appointment:
-            raise serializers.ValidationError({'task_appointment': [_('You can not change task for comment!')]})
-
-        if self.context['request'].user != instance.user:
-            raise serializers.ValidationError({'user': [_('You can not change another people comments!')]})
-
-        instance.text = validated_data.get('text') or instance.text
-
-        instance.save()
-
-        return instance
-
-    def create(self, validated_data):
-        return WorkerTaskComment.objects.create(
-            text=validated_data['text'],
-            task_appointment=validated_data['task_appointment'],
-            user=self.context['request'].user
-        )
 
 
 class TaskRecommendationSerializer(serializers.ModelSerializer):
@@ -569,5 +569,3 @@ class AutoAppointmentSerializer(serializers.ModelSerializer):
                     assigned_workers.add(chosen_worker)
 
         return result
-
-

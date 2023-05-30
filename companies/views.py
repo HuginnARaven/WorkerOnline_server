@@ -1,5 +1,7 @@
 from django.shortcuts import render
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import DateFromToRangeFilter, DateTimeFromToRangeFilter, DateTimeFilter, IsoDateTimeFilter, \
+    DateFilter
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 import django_filters.rest_framework
 from rest_framework import generics, viewsets, status, mixins, filters
 from rest_framework.generics import get_object_or_404
@@ -15,7 +17,7 @@ from companies.models import Company, Qualification, Task
 from companies.serializers import CompanySerializer, WorkerSerializer, QualificationSerializer, TaskSerializer, \
     TaskAppointmentSerializer, WorkerLogSerializer, TaskRecommendationSerializer, \
     WorkerReportSerializer, AutoAppointmentSerializer, CompanyTaskCommentSerializer, WorkerScheduleSerializer
-from companies.permission import IsCompany, IsCompanyWorker
+from companies.permission import IsCompany, IsCompanyWorker, IsCompanyOwner
 from workers.models import Worker, TaskAppointment, WorkerLogs, WorkerTaskComment, WorkerSchedule
 
 
@@ -45,7 +47,7 @@ class WorkerView(viewsets.ModelViewSet):
 class WorkerScheduleView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin,  GenericViewSet):
     queryset = WorkerSchedule.objects.all()
     serializer_class = WorkerScheduleSerializer
-    permission_classes = [IsAuthenticated, IsCompany, ]
+    permission_classes = [IsAuthenticated, IsCompanyOwner]
 
 
 class QualificationView(viewsets.ModelViewSet):
@@ -79,12 +81,21 @@ class TaskAppointmentView(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mi
         return qs.filter(task_appointed__company=self.request.user.id, )
 
 
+class LogFilter(FilterSet):
+    datetime = DateTimeFromToRangeFilter()
+    date = DateFilter(field_name='datetime', lookup_expr='date')
+
+    class Meta:
+        model = WorkerLogs
+        fields = ['worker', 'type', 'datetime', 'date']
+
+
 class WorkerLogView(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet):
     queryset = WorkerLogs.objects.all()
     serializer_class = WorkerLogSerializer
     permission_classes = [IsAuthenticated, IsCompany, ]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['worker', 'datetime__date', 'type']
+    filterset_class = LogFilter
     pagination_class = CustomStandartPagination
 
     def get_queryset(self):

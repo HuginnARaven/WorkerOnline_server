@@ -96,20 +96,17 @@ class TaskDoneSerializer(serializers.ModelSerializer):
 
 
 class WorkersLogSerializer(serializers.ModelSerializer):
-    task_info = TaskSerializer(read_only=True, source="task")
     localized_datetime = serializers.SerializerMethodField()
 
     class Meta:
         model = WorkerLogs
         fields = [
             'id',
-            'date',
-            'time',
+            'datetime',
             'localized_datetime',
             'type',
             'description',
             'task',
-            'task_info',
         ]
 
     def get_localized_datetime(self, obj):

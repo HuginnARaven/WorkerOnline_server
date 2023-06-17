@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django_filters import DateFromToRangeFilter, DateTimeFromToRangeFilter, DateTimeFilter, IsoDateTimeFilter, \
     DateFilter
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
-import django_filters.rest_framework
+
 from rest_framework import generics, viewsets, status, mixins, filters
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
@@ -11,7 +11,6 @@ from rest_framework.viewsets import GenericViewSet
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie, vary_on_headers
-from django.core.cache import cache, caches
 
 from companies.models import Company, Qualification, Task, TaskVoting
 from companies.serializers import CompanySerializer, WorkerSerializer, QualificationSerializer, TaskSerializer, \

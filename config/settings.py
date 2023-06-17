@@ -116,7 +116,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'WorkerOnline(moti)',
+        'NAME': 'WorkerOnline',
         'USER': 'postgres',
         'PASSWORD': os.environ.get('DB_PASS'),
         'HOST': 'localhost',
@@ -255,7 +255,7 @@ JAZZMIN_SETTINGS = {
         {"name": _("Home"),  "url": "admin:index", "permissions": ["auth.view_user"]},
 
         # external url that opens in a new window (Permissions can be added)
-        {"name": "Database", "url": "http://127.0.0.1:8000/i18n/admin/backups/backup-database/", "new_window": True},
+        {"name": "Database", "url": "http://192.168.1.147:8000/i18n/admin/backups/backup-database/", "new_window": True},
 
         # model admin to link to (Permissions checked against model)
         {"model": "auth.User"},

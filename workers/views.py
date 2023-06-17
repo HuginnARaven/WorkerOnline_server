@@ -40,7 +40,6 @@ class WorkersLogView(mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericVi
     permission_classes = [IsAuthenticated, IsWorker, ]
     filter_backends = [DjangoFilterBackend]
     filterset_class = WorkerLogFilter
-    pagination_class = CustomStandartPagination
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -55,6 +54,16 @@ class WorkerTaskCommentView(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(task_appointment__worker_appointed=self.request.user.id)
+
+
+class GetTasksCommentView(generics.ListAPIView):
+    queryset = WorkerTaskComment.objects.all()
+    serializer_class = WorkerTaskCommentSerializer
+    permission_classes = [IsAuthenticated, IsWorker, ]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(task_appointment__id=self.kwargs['task_pk'], task_appointment__worker_appointed=self.request.user.id)
 
 
 class VoteView(viewsets.ModelViewSet):

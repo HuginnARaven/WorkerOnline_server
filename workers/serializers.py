@@ -59,11 +59,16 @@ class WorkerTaskCommentSerializer(serializers.ModelSerializer):
 
 
 class TaskDoneSerializer(serializers.ModelSerializer):
-    task_info = TaskSerializer(read_only=True, source="task_appointed")
-    difficulty_for_worker = serializers.FloatField(read_only=True)
+
+    task_title = serializers.CharField(read_only=True, source="task_appointed.title")
+    task_description = serializers.CharField(read_only=True, source="task_appointed.description")
+    deadline = serializers.SerializerMethodField(read_only=True)
+    task_is_done = serializers.CharField(read_only=True, source="task_appointed.is_done")
+    task_estimate_hours = serializers.IntegerField(read_only=True, source="task_appointed.estimate_hours")
+
     comments = WorkerTaskCommentSerializer(many=True, read_only=True)
-    time_start = serializers.DateTimeField(read_only=True)
-    time_end = serializers.DateTimeField(read_only=True)
+    time_start = serializers.SerializerMethodField(read_only=True)
+    time_end = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = TaskAppointment
@@ -71,12 +76,29 @@ class TaskDoneSerializer(serializers.ModelSerializer):
             'id',
             'is_done',
             "status",
-            'comments',
             'time_start',
             'time_end',
-            'difficulty_for_worker',
-            'task_info',
+            'task_title',
+            'task_description',
+            'task_estimate_hours',
+            'task_is_done',
+            'deadline',
+            'comments',
         ]
+
+    def get_deadline(self, obj):
+        localized_datetime = timezone.localtime(obj.deadline, obj.worker_appointed.employer.get_timezone())
+        return localized_datetime.strftime('%Y-%m-%d %H:%M:%S')
+
+    def get_time_start(self, obj):
+        localized_datetime = timezone.localtime(obj.time_start, obj.worker_appointed.employer.get_timezone())
+        return localized_datetime.strftime('%Y-%m-%d %H:%M:%S')
+
+    def get_time_end(self, obj):
+        if obj.time_end:
+            localized_datetime = timezone.localtime(obj.time_end, obj.worker_appointed.employer.get_timezone())
+            return localized_datetime.strftime('%Y-%m-%d %H:%M:%S')
+        return ""
 
     def update(self, instance, validated_data):
         if instance.is_done:
@@ -94,6 +116,8 @@ class TaskDoneSerializer(serializers.ModelSerializer):
             instance.save()
 
         return instance
+
+
 
 
 class WorkersLogSerializer(serializers.ModelSerializer):
@@ -137,9 +161,6 @@ class VoteSerializer(serializers.ModelSerializer):
         if not data['voting'].is_active:
             errors.update({'voting': ['Voting already ended!']})
 
-        print(data['voting'].max_score, data['voting'].min_score)
-        print(data['voting'].max_score < data['score'])
-        print(data['score'] < data['voting'].min_score)
         if data['voting'].max_score < data['score'] or data['score'] < data['voting'].min_score:
             errors.update({'score': [f'Your score is not in scoring range! (min: {data["voting"].min_score} max: {data["voting"].max_score})']})
 

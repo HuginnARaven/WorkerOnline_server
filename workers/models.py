@@ -30,10 +30,11 @@ class Worker(UserAccount):
         time_diff = approx_finsh_date - time_start
 
         dates_on_task = [time_start + datetime.timedelta(days=i) for i in range(time_diff.days + 1)]
+        print(dates_on_task)
         worker_schedule = WorkerSchedule.objects.get(worker=self)
         for date in dates_on_task:
             if worker_schedule.is_weekend(date):
-                dates_on_task -= datetime.timedelta(days=1)
+                approx_finsh_date += datetime.timedelta(days=1)
 
         return approx_finsh_date
 

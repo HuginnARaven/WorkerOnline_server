@@ -24,7 +24,10 @@ class SupervisorOptionsSerializer(serializers.ModelSerializer):
 
 class SupervisorCompanySerializer(serializers.ModelSerializer):
     is_active = serializers.BooleanField(read_only=True)
+    in_admin_mode = serializers.BooleanField(read_only=True)
     last_active = serializers.DateTimeField(read_only=True)
+    username = serializers.CharField(read_only=True, source="worker.username")
+    localized_last_active = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Supervisor
@@ -32,19 +35,25 @@ class SupervisorCompanySerializer(serializers.ModelSerializer):
             "id",
             "in_admin_mode",
             "worker",
+            "username",
             "is_active",
             "last_active",
+            "localized_last_active"
         ]
+
+    def get_localized_last_active(self, obj):
+        localized_datetime = timezone.localtime(obj.last_active, obj.company.get_timezone())
+        return localized_datetime.strftime('%Y-%m-%d %H:%M:%S')
 
     def validate(self, data):
         if data.get('worker'):
             if not Worker.objects.filter(id=data['worker'].id,
                                          employer=self.context['request'].user.company):
-                raise serializers.ValidationError({'detail': [
+                raise serializers.ValidationError({'worker': [
                     _('The assigned worker does not exist or belong to your company!')
                 ]})
             if Supervisor.objects.filter(worker=data['worker']):
-                raise serializers.ValidationError({'detail': [
+                raise serializers.ValidationError({'worker': [
                     _('The assigned worker already have Supervisor!')
                 ]})
 
